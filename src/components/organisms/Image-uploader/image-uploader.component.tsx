@@ -126,7 +126,7 @@ export default function ImageUploader({
       const items = event.clipboardData?.items;
       if (!items) return;
 
-      for (let item of items) {
+      for (const item of items) {
         if (item.type.indexOf("image") !== -1) {
           const file = item.getAsFile();
           if (!file) return;
