@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircleIcon, Loader2Icon, X, XCircleIcon } from "lucide-react";
+import { CheckCircleIcon, Loader2Icon, XCircleIcon } from "lucide-react";
 
 interface ThumbnailProps {
   imageUrl: string;
@@ -18,11 +18,11 @@ export default function Thumbnail({
   onRetry,
 }: ThumbnailProps) {
   return (
-    <div className="relative w-40 h-40">
+    <div className="relative w-full h-full">
       {/* Border Progress Bar */}
 
       {/* Image Container */}
-      <div className="w-40 h-40 bg-gray-200 cursor-pointer rounded-lg overflow-hidden m-2 relative">
+      <div className="w-full h-full bg-gray-200 cursor-pointer rounded-lg overflow-hidden m-1 md:m-2 relative">
         <img
           src={imageUrl}
           alt="Uploaded Image"
@@ -37,8 +37,8 @@ export default function Thumbnail({
             />
 
             <div className="absolute bg-gray-400/20 inset-0 flex flex-col items-center justify-center gap-2">
-              <Loader2Icon className="w-10 h-10 text-gray-500 animate-spin" />
-              <p className="text-gray-500 text-xs">Uploading...</p>
+              <Loader2Icon className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10 text-gray-500 animate-spin" />
+              <p className="text-gray-500 text-xs md:text-sm">Uploading...</p>
             </div>
           </div>
         )}
@@ -46,11 +46,11 @@ export default function Thumbnail({
         {error && (
           <div className="absolute inset-0">
             <div className="absolute bg-white/50 border-2 border-red-300 rounded-lg inset-0 flex flex-col items-center justify-center gap-2">
-              <XCircleIcon className="w-10 h-10 text-red-500" />
+              <XCircleIcon className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10 text-red-500" />
               <Button
                 variant="ghost"
                 size="sm"
-                className="cursor-pointer"
+                className="cursor-pointer text-xs md:text-sm"
                 onClick={onRetry}
               >
                 Retry Upload
@@ -61,7 +61,7 @@ export default function Thumbnail({
 
         {!isUploading && !error && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/20">
-            <CheckCircleIcon className="w-10 h-10  text-gray-700" />
+            <CheckCircleIcon className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10 text-gray-700" />
           </div>
         )}
       </div>

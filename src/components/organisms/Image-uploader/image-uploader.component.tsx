@@ -1,10 +1,9 @@
-import { useCallback } from "react";
-import { useDropzone, type FileWithPath } from "react-dropzone";
-import DragHere from "./drag-here.component";
-import DropHere from "./drop-here.component";
-import { Upload } from "lucide-react";
+import { useCallback, useState } from "react";
+import shortid from "shortid";
+import { uploadImage } from "@/services/image-upload.service";
+import ImageSelector from "./image-selector.component";
+import ImageViewer, { type ImageFile } from "./image-viewer.component";
 
-import { cn } from "@/lib/utils";
 interface ImageUploaderProps {
   className?: string;
   dragContainerClassName?: string;
@@ -16,44 +15,119 @@ export default function ImageUploader({
   dragContainerClassName,
   buttonClassName,
 }: ImageUploaderProps) {
-  const onDrop = useCallback((acceptedFiles: FileWithPath[]) => {
-    // Do something with the files
-    console.log(acceptedFiles);
-  }, []);
+  const [files, setFiles] = useState<ImageFile[]>([]);
 
-  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
-    onDrop,
-  });
+  // Reusable upload function
+  const uploadFile = useCallback(
+    (file: File, fileId: string, imageUrl: string) => {
+      // Update state to show uploading
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.id === fileId
+            ? {
+                ...f,
+                isUploading: true,
+                progress: 0,
+                error: false,
+              }
+            : f
+        )
+      );
+
+      // Start upload with progress tracking
+      uploadImage(file, (progress) => {
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === fileId
+              ? {
+                  ...f,
+                  progress: progress.progress,
+                  isUploading: progress.progress < 100,
+                }
+              : f
+          )
+        );
+      })
+        .then((response) => {
+          // Update with final URL from server
+          setFiles((prev) =>
+            prev.map((f) =>
+              f.id === fileId
+                ? {
+                    ...f,
+                    imageUrl: response.data?.url || imageUrl,
+                    isUploading: false,
+                    progress: 100,
+                    error: false,
+                  }
+                : f
+            )
+          );
+        })
+        .catch((error) => {
+          console.error("Upload failed:", error);
+          setFiles((prev) =>
+            prev.map((f) =>
+              f.id === fileId
+                ? {
+                    ...f,
+                    isUploading: false,
+                    progress: 0,
+                    error: true,
+                  }
+                : f
+            )
+          );
+        });
+    },
+    []
+  );
+
+  const handleFilesSelected = useCallback(
+    (selectedFiles: File[]) => {
+      selectedFiles.forEach((file) => {
+        const fileId = shortid.generate();
+        const imageUrl = URL.createObjectURL(file);
+
+        // Add file to state immediately
+        setFiles((prev) => [
+          ...prev,
+          {
+            id: fileId,
+            imageUrl,
+            isUploading: true,
+            progress: 0,
+            error: false,
+            file, // Store original file for retry
+          },
+        ]);
+
+        // Start upload
+        uploadFile(file, fileId, imageUrl);
+      });
+    },
+    [uploadFile]
+  );
+
+  const handleRetry = useCallback(
+    (fileId: string) => {
+      const fileToRetry = files.find((f) => f.id === fileId);
+      if (fileToRetry?.file) {
+        uploadFile(fileToRetry.file, fileId, fileToRetry.imageUrl);
+      }
+    },
+    [files, uploadFile]
+  );
 
   return (
-    <div className={cn("w-full", className)}>
-      <div
-        {...getRootProps()}
-        className={cn(
-          "w-full border-2 border-dashed rounded-lg transition-colors flex items-center justify-center",
-          isDragActive
-            ? "border-blue-500 bg-blue-50"
-            : "border-gray-300 bg-white hover:border-gray-400",
-          dragContainerClassName,
-          "cursor-pointer"
-        )}
-      >
-        <input {...getInputProps()} />
-        {isDragActive ? <DropHere /> : <DragHere />}
-      </div>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          open();
-        }}
-        className={cn(
-          "w-full mt-4 flex items-center justify-center gap-2 py-3 px-4 bg-gray-600 text-white rounded-lg hover:opacity-90 transition-opacity",
-          buttonClassName
-        )}
-      >
-        <Upload className="w-5 h-5" />
-        <span>Upload</span>
-      </button>
+    <div className="w-full grid p-4 md:p-2 md:grid-cols-[1fr_2fr] gap-6">
+      <ImageSelector
+        onFilesSelected={handleFilesSelected}
+        className={className}
+        dragContainerClassName={dragContainerClassName}
+        buttonClassName={buttonClassName}
+      />
+      <ImageViewer onRetry={handleRetry} files={files} />
     </div>
   );
 }
