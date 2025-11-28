@@ -1,6 +1,6 @@
-import Thumbnail from "./thumbnail.component";
+import FilePreviewItem from "./file-preview-item.component";
 
-interface ImageFile {
+export interface ImageFile {
   id: string;
   imageUrl: string;
   isUploading: boolean;
@@ -12,12 +12,17 @@ interface ImageFile {
 interface ImageViewerProps {
   files: ImageFile[];
   onRetry?: (fileId: string) => void;
+  onRemove?: (fileId: string) => void;
 }
 
-export default function ImageViewer({ files, onRetry }: ImageViewerProps) {
+export default function ImageViewer({
+  files,
+  onRetry,
+  onRemove,
+}: ImageViewerProps) {
   if (files.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center">
+      <div className="flex flex-col items-center justify-center min-h-[200px]">
         <p className="text-gray-500 text-sm md:text-base lg:text-lg">
           No images uploaded
         </p>
@@ -26,19 +31,15 @@ export default function ImageViewer({ files, onRetry }: ImageViewerProps) {
   }
 
   return (
-    <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-3 lg:gap-4 justify-center">
+    <div className="flex flex-col gap-3 max-h-[70vh] overflow-y-auto pr-2">
       {files.map((file) => (
-        <Thumbnail
+        <FilePreviewItem
           key={file.id}
-          imageUrl={file.imageUrl}
-          isUploading={file.isUploading}
-          progress={file.progress}
-          error={file.error}
-          onRetry={onRetry ? () => onRetry(file.id) : undefined}
+          file={file}
+          onRetry={onRetry || (() => {})}
+          onRemove={onRemove || (() => {})}
         />
       ))}
     </div>
   );
 }
-
-export type { ImageFile };

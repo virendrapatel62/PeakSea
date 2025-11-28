@@ -119,15 +119,23 @@ export default function ImageUploader({
     [files, uploadFile]
   );
 
+  const handleRemove = useCallback((fileId: string) => {
+    setFiles((prev) => prev.filter((f) => f.id !== fileId));
+  }, []);
+
   return (
-    <div className="w-full grid p-4 md:p-2 md:grid-cols-[1fr_2fr] gap-6">
+    <div className="max-w-5xl mx-auto grid p-4  gap-6">
       <ImageSelector
         onFilesSelected={handleFilesSelected}
         className={className}
         dragContainerClassName={dragContainerClassName}
         buttonClassName={buttonClassName}
       />
-      <ImageViewer onRetry={handleRetry} files={files} />
+      <ImageViewer
+        onRetry={handleRetry}
+        onRemove={handleRemove}
+        files={files}
+      />
     </div>
   );
 }
