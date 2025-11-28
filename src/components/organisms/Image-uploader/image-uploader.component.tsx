@@ -1,8 +1,10 @@
 import { useCallback, useState } from "react";
 import shortid from "shortid";
+import { toast } from "sonner";
 import { uploadImage } from "@/services/image-upload.service";
 import ImageSelector from "./image-selector.component";
 import ImageViewer, { type ImageFile } from "./image-viewer.component";
+import OverallProgress from "./overall-progress.component";
 
 interface ImageUploaderProps {
   className?: string;
@@ -63,6 +65,11 @@ export default function ImageUploader({
                 : f
             )
           );
+          // Show success toast
+          toast.success("Upload successful!", {
+            description: file.name,
+            duration: 3000,
+          });
         })
         .catch((error) => {
           console.error("Upload failed:", error);
@@ -78,6 +85,11 @@ export default function ImageUploader({
                 : f
             )
           );
+          // Show error toast
+          toast.error("Upload failed", {
+            description: error.message || "Please try again",
+            duration: 4000,
+          });
         });
     },
     []
@@ -123,14 +135,22 @@ export default function ImageUploader({
     setFiles((prev) => prev.filter((f) => f.id !== fileId));
   }, []);
 
+  const handleClearAll = useCallback(() => {
+    setFiles([]);
+    toast.info("All files cleared");
+  }, []);
+
   return (
-    <div className="max-w-5xl mx-auto grid p-4  gap-6">
+    <div className="max-w-5xl mx-auto grid p-4 gap-6">
       <ImageSelector
         onFilesSelected={handleFilesSelected}
         className={className}
         dragContainerClassName={dragContainerClassName}
         buttonClassName={buttonClassName}
       />
+
+      <OverallProgress files={files} onClearAll={handleClearAll} />
+
       <ImageViewer
         onRetry={handleRetry}
         onRemove={handleRemove}

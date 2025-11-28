@@ -1,4 +1,5 @@
 import { Outlet } from "react-router-dom";
+import { Toaster } from "@/components/ui/sonner";
 import Navbar from "@/components/organisms/navbar/navbar.component";
 
 export default function MainLayout() {
@@ -9,6 +10,7 @@ export default function MainLayout() {
       <main className="container mx-auto py-4">
         <Outlet />
       </main>
+      <Toaster />
     </div>
   );
 }
