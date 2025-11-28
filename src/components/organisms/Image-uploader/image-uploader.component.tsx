@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import shortid from "shortid";
 import { toast } from "sonner";
 import { uploadImage } from "@/services/image-upload.service";
@@ -120,6 +120,25 @@ export default function ImageUploader({
     },
     [uploadFile]
   );
+
+  useEffect(() => {
+    const handlePaste = async (event: ClipboardEvent) => {
+      const items = event.clipboardData?.items;
+      if (!items) return;
+
+      for (let item of items) {
+        if (item.type.indexOf("image") !== -1) {
+          const file = item.getAsFile();
+          if (!file) return;
+          handleFilesSelected([file]);
+        }
+      }
+    };
+    document.addEventListener("paste", handlePaste);
+    return () => {
+      document.removeEventListener("paste", handlePaste);
+    };
+  }, [handleFilesSelected]);
 
   const handleRetry = useCallback(
     (fileId: string) => {
